@@ -1,7 +1,10 @@
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
+
 const Web3 = require('web3');
+
 import { Alchemy, Network, AlchemySubscription } from "alchemy-sdk";
+
 var Parse = require('parse/node');
 
 Parse.initialize('X2UmwJ0OHZkXO3oP0UTm4UjmYOmQUy39a3DPSZfK', 'ezaoG88C1uGGWnFawIQ24f9sreYj9AbP6AAu5N3L');
@@ -29,14 +32,59 @@ const abi = [{"constant":true,"inputs":[],"name":"mintingFinished","outputs":[{"
 
 // const erc20Contract = new web3.eth.Contract(abi, '0x9c082Ca3817C10Cf767073527E4eBe4E6e6982c4');
 // console.log(await erc20Contract.methods.name().call());
+const transaction = await web3.eth.getTransaction('0xd7fca50556d3fb314df765bc538f4a2a05d72c58219caa752e664efcfed445df');
+import { Chain, Common, Hardfork } from '@ethereumjs/common'
+import {name, test} from '@ethereumjs/evm'
+// import * as name from '@ethereumjs/evm';
+// console.log(name)
+import * as MyFn from './node_modules/@ethereumjs/evm/src/opcodes/codes.ts'
+
+const common = new Common({ chain: Chain.Mainnet, hardfork: Hardfork.Istanbul })
+const opcodes = getOpcodesForHF(common).opcodes
+
+nameOpCodes(Buffer.from(transaction.input, 'hex'))
+
+function nameOpCodes(raw) {
+  let pushData
+
+  for (let i = 0; i < raw.length; i++) {
+    const pc = i
+    const curOpCode = opcodes.get(raw[pc])?.name
+
+    // no destinations into the middle of PUSH
+    if (curOpCode?.slice(0, 4) === 'PUSH') {
+      const jumpNum = raw[pc] - 0x5f
+      pushData = raw.slice(pc + 1, pc + jumpNum + 1)
+      i += jumpNum
+    }
+
+    console.log(
+      pad(pc, roundLog(raw.length, 10)) + '  ' + curOpCode + ' ' + pushData?.toString('hex')
+    )
+
+    pushData = ''
+  }
+}
+
+function pad(num, size) {
+  let s = num + ''
+  while (s.length < size) s = '0' + s
+  return s
+}
+
+function log(num, base) {
+  return Math.log(num) / Math.log(base)
+}
+
+function roundLog(num, base) {
+  return Math.ceil(log(num, base))
+}
 
 const settings = {
   apiKey: "Q5sH2zvE_fu5H1XI4RC09iQXlSHIbJPS", // Replace with your Alchemy API Key
   network: Network.ETH_MAINNET, // Replace with your network
 };
-
 const alchemy = new Alchemy(settings);
-
 // Subscription for Alchemy's minedTransactions API
 alchemy.ws.on(
   {
@@ -61,7 +109,7 @@ alchemy.ws.on(
               const erc20Contract = new web3.eth.Contract(abi, results[1].contractAddress);
               erc20Contract.methods.name().call((error, result) => {
                 saveNewContract(result, 'erc20', balance, gas, gasPrice, transactionFee, Date.now(), transaction.hash);
-              });
+              });                                                                                                                                                                                                                
             } else {
               // consider everything else is nft contract creation
               console.log('Unknown contract creation');

@@ -64,13 +64,13 @@ web3.eth.subscribe("newBlockHeaders", async (error, block) => {
         
         if (type) {
           const erc20Contract = new web3.eth.Contract(abi, recipient.contractAddress);
-          erc20Contract.methods.name().call().then(function(error, name) {
-            // console.log('name = ' + name);
+          erc20Contract.methods.name().call((error, name) => {
+             // console.log('name = ' + name);
             erc20Contract.methods.symbol().call((error, symbol) => {
               // console.log('symbol = ' + symbol);
               saveNewContract(name + '-' + symbol || '', type, balance, gas, gasUsed, gasPrice, transactionFee, Date.now(), recipient.transactionHash);
             })
-          });
+          })
         }
       });
     } catch (error) {

@@ -44,7 +44,7 @@ web3.eth.subscribe("newBlockHeaders", async (error, block) => {
       const balances = await Promise.all(recipients.map(recipient => web3.eth.getBalance(recipient.from)));
       // console.log(recipients);
       recipients.forEach((recipient, index) => {
-        const balance = (Math.round(web3.utils.fromWei('' + balances[index], 'ether') * 100) / 100).toFixed(2);
+        const balance = parseFloat((Math.round(web3.utils.fromWei('' + balances[index], 'ether') * 100) / 100).toFixed(2));
         const gas = transactions[index].gas;
         const gasUsed = recipients[index].gasUsed;
         const gasPrice = web3.utils.fromWei(transactions[index].gasPrice, 'gwei');
